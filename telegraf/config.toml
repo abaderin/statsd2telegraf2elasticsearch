@@ -1,0 +1,86 @@
+[[inputs.statsd]]
+  ## Protocol, must be "tcp", "udp4", "udp6" or "udp" (default=udp)
+  protocol = "udp4"
+  service_address = ":8125"
+
+#  delete_gauges = false
+#  delete_counters = false
+#  delete_sets = false
+#  delete_timings = false
+
+  percentiles = [50.0, 90.0, 99.0, 99.9, 99.95, 100.0]
+
+  metric_separator = "_"
+
+  parse_data_dog_tags = true
+  datadog_extensions = true
+  datadog_distributions = false
+
+  ## Statsd data translation templates, more info can be read here:
+  ## https://github.com/influxdata/telegraf/blob/master/docs/TEMPLATE_PATTERN.md
+  # templates = [
+  #     "cpu.* measurement*"
+  # ]
+
+  allowed_pending_messages = 10000
+  percentile_limit = 1000
+
+[[aggregators.basicstats]]
+  period = "60s"
+
+  drop_original = true
+  stats = ["sum"]
+  # ["count","diff","rate","min","max","mean","non_negative_diff","non_negative_rate","stdev","s2","sum","interval"]
+
+[[outputs.elasticsearch]]
+  ## The full HTTP endpoint URL for your Elasticsearch instance
+  ## Multiple urls can be specified as part of the same cluster,
+  ## this means that only ONE of the urls will be written to each interval.
+  urls = [ "http://elasticsearch:9200" ]
+  ## Elasticsearch client timeout, defaults to "5s" if not set.
+  timeout = "5s"
+  ## Set to true to ask Elasticsearch a list of all cluster nodes,
+  ## thus it is not necessary to list all nodes in the urls config option
+  enable_sniffer = false
+  ## Set the interval to check if the Elasticsearch nodes are available
+  ## Setting to "0s" will disable the health check (not recommended in production)
+  health_check_interval = "10s"
+  ## HTTP basic authentication details.
+  # username = "telegraf"
+  # password = "mypassword"
+
+  ## Index Config
+  ## The target index for metrics (Elasticsearch will create if it not exists).
+  ## You can use the date specifiers below to create indexes per time frame.
+  ## The metric timestamp will be used to decide the destination index name
+  # %Y - year (2016)
+  # %y - last two digits of year (00..99)
+  # %m - month (01..12)
+  # %d - day of month (e.g., 01)
+  # %H - hour (00..23)
+  # %V - week of the year (ISO week) (01..53)
+  ## Additionally, you can specify a tag name using the notation {{tag_name}}
+  ## which will be used as part of the index name. If the tag does not exist,
+  ## the default tag value will be used.
+  # index_name = "telegraf-{{host}}-%Y.%m.%d"
+  # default_tag_value = "none"
+  index_name = "metrics-%Y.%m.%d"
+
+  ## Optional TLS Config
+  # tls_ca = "/etc/telegraf/ca.pem"
+  # tls_cert = "/etc/telegraf/cert.pem"
+  # tls_key = "/etc/telegraf/key.pem"
+  ## Use TLS but skip chain & host verification
+  # insecure_skip_verify = false
+
+  ## Template Config
+  ## Set to true if you want telegraf to manage its index template.
+  ## If enabled it will create a recommended index template for telegraf indexes
+  manage_template = true
+  ## The template name used for telegraf indexes
+  template_name = "metrics"
+  ## Set to true if you want telegraf to overwrite an existing template
+  overwrite_template = true
+  ## If set to true a unique ID hash will be sent as sha256(concat(timestamp,measurement,series-hash)) string
+  ## it will enable data resend and update metric points avoiding duplicated metrics with diferent id's
+  force_document_id = false
